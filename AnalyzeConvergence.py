@@ -45,7 +45,7 @@ def analyze(open_hdfs, thres=1.05):
 			for dim in range(chain_vars.shape[1]):
 				varname = "{}_{}".format(var, dim)
 				rhat = gelman_rubin(chain_vars[:,dim,:])
-				if rhat > thres):
+				if rhat > thres:
 					logger.info("{}: Rhat: {}".format(varname, rhat))
 				rhats.append([varname, rhat])	
 		else:
