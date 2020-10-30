@@ -1,3 +1,4 @@
+import gc
 import h5py
 import logging
 import argparse
@@ -53,6 +54,8 @@ def analyze(open_hdfs, thres=1.05):
 			if rhat > thres:
 				logger.info("{}: Rhat: {}".format(var, rhat))
 			rhats.append([var, rhat])	
+		del chain_vars
+		gc.collect()
 		
 	logger.info("Rhats > {}:".format(thres))
 	for varname, rhat in rhats:
