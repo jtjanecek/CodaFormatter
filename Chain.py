@@ -10,7 +10,9 @@ logger.setLevel(logging.INFO)
 
 
 class Chain():
-	def __init__(self, chain_file, index_file, output_dir):
+	def __init__(self, niter, nthin, chain_file, index_file, output_dir):
+		self._niter = int(niter)
+		self._nthin = int(nthin)
 		self.chain_file = chain_file
 		self.index_file = index_file
 		self.output_dir = output_dir
@@ -24,6 +26,9 @@ class Chain():
 		self.initialize_arrays()
 		logger.info("Done.")
 
+		print("===")
+		for var in self._var_dicts:
+			print(var)
 		logger.info("Reading chain ...")
 		self.read_chain()
 		logger.info("Done.")
@@ -33,8 +38,6 @@ class Chain():
 		self.save()
 		
 	def initialize_index(self):
-		self._chain_sizes = dict()	
-
 		def parse_index_line(line):
 			split_line = line.split()
 			if "[" in split_line[0]:
@@ -46,16 +49,17 @@ class Chain():
 				varname = split_line[0]
 				idxes = None
 
-			line_start = int(split_line[1])-1
-			line_end = int(split_line[2])-1
-			if idxes == None:
-				idxes = line_end-line_start+1
+			if varname == 'deviance':
+				idxes = self._niter * self._nthin
+			elif idxes == None:
+				idxes = self._niter
 			else:
-				idxes.append(line_end-line_start+1)
-			return {'var': varname, 'idx': idxes, 'start': line_start, 'end': line_end}
+				idxes.append(self._niter)
+			return {'var': varname, 'idx': idxes}
 					
 		# Iterate over the lines
 		self._var_dicts = []	
+		self._chain_sizes = {}
 		for line in self._readlines_reverse(self.index_file):
 			if not line:
 				continue
@@ -106,7 +110,8 @@ class Chain():
 		# Set current idx to update to 0
 		cur_idx[-1] = 0
 		#logger.info("{} ...".format(var_dict))
-		while self.__chain_line_num <= var_dict['end']:
+		end = self.__chain_line_num + self._niter if var_dict['var'] != 'deviance' else self.__chain_line_num + (self._niter*2)
+		while self.__chain_line_num < end:
 			line = next(fo)
 			data = float(line.split()[1])
 			idx_to_update = tuple(cur_idx)
@@ -115,6 +120,9 @@ class Chain():
 			# Update the current idx and current line number 
 			self.__chain_line_num += 1
 			cur_idx[-1] += 1
+			
+			#if self.__chain_line_num % 10000 == 0:
+			#	logger.info("Current: var: {}, linenum: {}, data: {}".format(var_dict['var'], self.__chain_line_num, data))
 
 	def save(self):
 		logger.info("Saving chain ...")
@@ -145,11 +153,14 @@ class Chain():
 if __name__ == '__main__':
 	import argparse		
 	parser = argparse.ArgumentParser(description='Format a JAGS output chain to better format (collapse indices etc)')
+	parser.add_argument('--niter', help='n iterations', required=True)
+	parser.add_argument('--nthin', help='n thinning', required=True)
 	parser.add_argument('--chain', help='JAGS chain file', required=True)
 	parser.add_argument('--index', help='JAGS index file', required=True)
 	parser.add_argument('--out', help='output directory', required=True)
+
 	cli_args = parser.parse_args()
 
 	# Run
-	Chain(cli_args.chain, cli_args.index, cli_args.out)
+	Chain(cli_args.niter, cli_args.nthin, cli_args.chain, cli_args.index, cli_args.out)
 	
