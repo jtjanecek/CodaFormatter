@@ -61,6 +61,7 @@ def analyze(open_hdfs, thres=1.05):
 	for varname, rhat in rhats:
 		if rhat > thres:
 			logger.info("{}: {:.2f}".format(varname, rhat))
+	logger.info("Max Rhat: {:.5f}".format(max([rhat[1] for rhat in rhats])))
 	logger.info("Done.")
 
 

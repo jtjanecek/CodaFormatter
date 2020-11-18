@@ -110,7 +110,7 @@ class Chain():
 		# Set current idx to update to 0
 		cur_idx[-1] = 0
 		#logger.info("{} ...".format(var_dict))
-		end = self.__chain_line_num + self._niter if var_dict['var'] != 'deviance' else self.__chain_line_num + (self._niter*2)
+		end = self.__chain_line_num + self._niter if var_dict['var'] != 'deviance' else self.__chain_line_num + (self._niter*self._nthin)
 		while self.__chain_line_num < end:
 			line = next(fo)
 			data = float(line.split()[1])
