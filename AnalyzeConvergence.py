@@ -39,6 +39,7 @@ def analyze(open_hdfs, thres=1.05):
 	#for var in ['alphaMu', 'alphaDiffExerciseCarryover']:
 		logger.info("Reading {} ...".format(var))
 		chain_vars = np.array([np.array(of.get(var)) for of in open_hdfs])
+		logger.info("{} {}".format(var, chain_vars.shape))
 		if len(chain_vars.shape) != 2:
 			# Collapse middle dimensions
 			chain_vars = chain_vars.reshape(chain_vars.shape[0], -1, chain_vars.shape[-1])
